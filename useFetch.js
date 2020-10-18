@@ -1,0 +1,43 @@
+import { useState, useEffect, useRef } from "react"
+
+export const useFetch = (url) => {
+    const isMounted = useRef(true);
+    const [state, setState] = useState({ data: null, loading: true, error: null });
+
+    // Efecto utilizado para evitar error de dismount de componente con la peticion
+    useEffect(() => {
+        return () => {
+            isMounted.current = false;
+        }
+    }, []);
+
+    useEffect(() => {
+        setState({ data: null, loading: true, error: null });
+
+        fetch(url)
+            .then(resp => resp.json())
+            .then(data => {
+
+                // usar setTimeout para verificar la utilidad del useEffect
+                if (isMounted.current) {
+                    setState({
+                        loading: false,
+                        error: null,
+                        data
+                    });
+                } else {
+                    console.log('setState no se llamó');
+                }
+            })
+            .catch(() => {
+                setState({
+                    data: null,
+                    loading: false,
+                    error: 'No se pudo cargar la info'
+                })
+            })
+
+    }, [url]);
+
+    return state;
+}
